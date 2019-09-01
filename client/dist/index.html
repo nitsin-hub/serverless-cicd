@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">  
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.8/css/mdb.min.css" rel="stylesheet">  
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.8/js/mdb.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.1/fetch.js"></script>
+  <script src="./config.js"></script>
+</head>
+
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark stylish-color-dark">
+      <a class="navbar-brand" href="#">Chaos Button</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="row justify-content-md-center">
+        <div class="col-12 col-md-auto">
+          <div class="card">
+              <!-- Card image -->
+              <div class="view overlay">
+                <img class="card-img-top" src="./card-image.png" alt="Chaos">
+                <a href="#!">
+                  <div class="mask rgba-white-slight"></div>
+                </a>
+              </div>
+            
+              <!-- Card content -->
+              <div class="card-body">    
+                <!-- Title -->
+                <h4 class="card-title">Chaos Button</h4>
+                <!-- Form -->
+                <form>
+                    <p class="card-text">Send a random message to anyone you know and let the universe do what it does best.</p>
+                    <div class="form-group">
+                        <select id="message" class="browser-default custom-select" placeholder="message to send here...." aria-describedby="message-help">
+                          <option>I'm running late because __________________</option>
+                          <option>Sorry about yesterday __________________</option>
+                          <option>Hey. About what you said __________________</option>
+                      </select>
+                      <small id="message-help" class="form-text text-muted mb-4">
+                          Select the start of the message the universe will randomly complete for you
+                      </small>                      
+                  </div>
+                    <div class="form-group">
+                        <input id="phone-number" type="text" class="form-control" placeholder="Mobile numbers" aria-describedby="phone-number-help">
+                        <small id="phone-number-help" class="form-text text-muted mb-4">
+                            Seperate mobile numbers using a comma (e.g. 0400123456,0400456123)
+                        </small>                      
+                    </div>
+                </form>
+
+                <!-- Button -->
+                <button id="send-sms" class="btn btn-primary btn-lg" name="submit" type="submit" data-submit="...Sending">Chaos Button</button>
+
+              </div>
+
+          </div>
+
+          <!-- Outputs -->
+          <div id="error-message" class="alert alert-danger m-3"></div>
+          <div id="success-message" class="alert alert-success m-3"></div>              
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+
+  </footer>
+
+  <script>
+
+    var errorDiv = document.getElementById('error-message');
+    var successDiv = document.getElementById('success-message');
+    errorDiv.style.visibility = "hidden";
+    successDiv.style.visibility = "hidden";
+
+    // Handle public api call
+    document.getElementById('send-sms').addEventListener('click', function (event) {
+      // Prevents the page reloading
+      event.preventDefault()
+
+      const textMessage = document.getElementById('message').value;
+      const phoneNumber = document.getElementById('phone-number').value;
+      
+      // Validate inputs
+      errorDiv.innerHTML = '';
+      successDiv.innerHTML = '';
+      errorDiv.style.visibility = "hidden";
+      successDiv.style.visibility = "hidden";
+      
+      if (!textMessage) {
+        errorDiv.innerHTML = 'Remember to enter a message!';
+        errorDiv.style.visibility = "visible";
+        return false;
+      }
+
+      if (!phoneNumber) {
+        errorDiv.innerHTML = 'Don\'t forget to enter a phone number!';
+        errorDiv.style.visibility = "visible";
+        return false;
+      }
+
+      // Change state of the button
+      $('#send-sms').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Sending...').addClass('disabled');
+
+      // Construct request body
+      const data = JSON.stringify({
+        to: phoneNumber,
+        message: textMessage
+      });
+
+      // Post to API using Fetch
+      var url = API_ENDPOINT + '/api/sendChaosSms';
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          "Content-type": "application/json"
+        },
+        body: data,
+        mode: 'cors'
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Response:', data);
+        const body = JSON.parse(data.body);
+        if (body.status === 'success') {
+          successDiv.textContent = (body && body.message) ? body.message : '';
+          successDiv.style.visibility = "visible";
+        } else {
+          errorDiv.textContent = (body && body.message) ? body.message : '';
+          errorDiv.style.visibility = "visible";
+        };        
+        // Change state of the button back
+        $('#send-sms').html('Chaos Button').removeClass('disabled');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        errorDiv.textContent = 'The universe failed...never seen that before!';
+        errorDiv.style.visibility = "visible";
+        // Change state of the button back
+        $('#send-sms').html('Chaos Button').removeClass('disabled');
+      });
+
+    });
+  </script>
+  
+</body>
+
+</html>

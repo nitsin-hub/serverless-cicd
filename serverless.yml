@@ -1,0 +1,63 @@
+# Chaos Button App 
+# - Full stack serverless framework demo
+service: chaos-button-app
+
+plugins:
+  # Static website plugin
+  - serverless-finch
+
+custom:
+  # DynamoDB table naming
+  tableName: chaos-button-app-db-${opt:stage,'dev'}
+  # Serverless Finch configuration
+  client:
+    bucketName: chaos-button-app-${opt:stage,'dev'}
+    distributionFolder: client/dist 
+    indexDocument: index.html
+    errorDocument: error.html
+
+provider:
+  # AWS configuration
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage,'dev'}
+  region: us-east-1
+  tracing:
+    lambda: true  
+
+  environment:
+    # Twilio API configuration
+    TWILIO_ACCOUNT_SID: ${ssm:/chaos-button-app/twilio/account_sid~true}
+    TWILIO_AUTH_TOKEN: ${ssm:/chaos-button-app/twilio/account_token~true}
+    TWILIO_PHONE_NUMBER: ${ssm:/chaos-button-app/twilio/account_number~true}
+    # DynamoDB table name
+    TABLE_NAME: ${self:custom.tableName}
+    
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "Fn::GetAtt": [ DynamoDBMessageTable, Arn ]    
+
+resources:
+  # DynamoDB
+  - ${file(resources/dynamodb.yml)}
+
+functions:
+  # Lambda function to send SMS message
+  SendChaosSms:
+    handler: handler.sendChaosSms
+    events:
+      # API Gateway configuration
+      - http:
+          path: api/sendChaosSms
+          method: post
+          integration: lambda
+          cors: true

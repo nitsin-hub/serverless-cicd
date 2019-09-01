@@ -1,0 +1,7 @@
+{
+    "comment": "sls invoke local --function SendChaosSms -e TWILIO_ACCOUNT_SID=AC123 -e TWILIO_AUTH_TOKEN=123 -e TWILIO_PHONE_NUMBER=123 --path tests/test-context.json",
+    "body": {
+        "to": "0410000000,0410111111",
+        "message": "Hey. About what you said... __________________"
+    }
+}

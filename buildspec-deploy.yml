@@ -1,0 +1,13 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+    commands:
+    - npm install --silent --no-progress -g npm
+    - npm install --silent --no-progress -g serverless      
+    - npm install --silent --no-progress --save serverless-finch    
+  build:
+    commands:
+       - bash deploy.sh

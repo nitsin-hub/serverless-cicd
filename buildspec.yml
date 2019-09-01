@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+    commands:
+    - npm install --silent --no-progress -g npm
+    - npm install --silent --no-progress -g serverless
+  pre_build:
+    commands:
+    - npm install --silent --no-progress
+  build:
+    commands:
+    - mkdir -p target/dev
+    - mkdir -p target/prod
+    - serverless package --package target/dev --stage dev -v -r us-east-1
+    - serverless package --package target/prod --stage prod -v -r us-east-1
+
+artifacts:
+  files:
+  - target/**/*
+  - resources/*
+  - client/dist/*
+  - serverless.yml
+  - buildspec-deploy.yml
+  - deploy.sh
